@@ -17,7 +17,6 @@
             box-sizing: border-box;
         }
 
-        /* Translucent Navbar Style */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -44,7 +43,7 @@
         .search-bar input {
             padding: 10px;
             border-radius: 4px;
-            border: 1px solid #444; /* Dark border */
+            border: 1px solid #444;
             background-color: #333;
             color: #f1f1f1;
             width: 250px;
@@ -52,7 +51,7 @@
 
         .search-bar button {
             padding: 10px 16px;
-            background-color: #e50914; /* Red button */
+            background-color: #e50914;
             border: none;
             color: white;
             cursor: pointer;
@@ -64,13 +63,11 @@
             background-color: #b00710;
         }
 
-        /* Movie Container */
         .movie-container {
-            margin-top: 150px; /* More space between navbar and categories */
+            margin-top: 150px;
             padding: 40px 20px;
             flex-grow: 1;
-            background-color: #181818; /* Dark background */
-            overflow: hidden;
+            background-color: #181818;
         }
 
         .movie-category {
@@ -80,7 +77,7 @@
         .category-title {
             font-size: 30px;
             margin-bottom: 20px;
-            color: #e50914; /* Red color */
+            color: #e50914;
             font-weight: bold;
         }
 
@@ -95,7 +92,7 @@
             transition: transform 0.3s ease;
             border-radius: 12px;
             overflow: hidden;
-            background-color: #333; /* Dark movie card */
+            background-color: #333;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
         }
 
@@ -109,7 +106,7 @@
             text-align: center;
             margin-top: 10px;
             font-size: 18px;
-            color: #f1f1f1; /* Light text */
+            color: #f1f1f1;
             padding: 10px;
             background-color: #444;
         }
@@ -118,11 +115,10 @@
             transform: scale(1.05);
         }
 
-        /* Category Button Style */
         .category-container {
             display: flex;
             gap: 15px;
-            overflow-x: auto; /* Allow horizontal scrolling */
+            overflow-x: auto;
             padding: 10px 0;
             margin-bottom: 30px;
         }
@@ -139,26 +135,23 @@
         }
 
         .category-button:hover {
-            background-color: #e50914; /* Red hover */
+            background-color: #e50914;
         }
 
         .category-button:active {
-            background-color: #b00710; /* Dark red on click */
+            background-color: #b00710;
         }
 
-        /* Hide scrollbar for better design */
         .movie-row::-webkit-scrollbar {
             display: none;
         }
 
-        /* Responsive Design */
         @media screen and (max-width: 768px) {
             .search-bar input {
                 width: 200px;
             }
         }
 
-        /* Mobile */
         @media screen and (max-width: 480px) {
             .movie-card {
                 width: 160px;
@@ -167,6 +160,21 @@
             .search-bar input {
                 width: 150px;
             }
+        }
+
+        /* Style for the movie stream section */
+        .movie-stream {
+            margin-top: 40px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .movie-stream iframe {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
         }
     </style>
 </head>
@@ -183,12 +191,16 @@
 
     <!-- Main Content -->
     <div class="movie-container">
-
         <!-- Category Buttons (Genre Selection) -->
         <div class="category-container" id="category-container"></div>
 
         <!-- Movie Categories and Posters -->
         <div id="movie-container"></div>
+
+        <!-- Movie Stream -->
+        <div id="movie-stream" class="movie-stream">
+            <iframe id="movie-frame" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
     </div>
 
     <script>
@@ -200,8 +212,9 @@
 
         const movieContainer = document.getElementById('movie-container');
         const categoryContainer = document.getElementById('category-container');
+        const movieStream = document.getElementById('movie-stream');
+        const movieFrame = document.getElementById('movie-frame');
 
-        // Fetch and display popular movies on page load
         async function fetchPopularMovies() {
             try {
                 const response = await fetch(TMDB_POPULAR_URL);
@@ -212,7 +225,6 @@
             }
         }
 
-        // Fetch and display categories
         async function fetchGenres() {
             try {
                 const response = await fetch(TMDB_GENRES_URL);
@@ -223,7 +235,6 @@
             }
         }
 
-        // Display genres in a horizontal scrollable list
         function displayGenres(genres) {
             genres.forEach(genre => {
                 const button = document.createElement('button');
@@ -234,7 +245,6 @@
             });
         }
 
-        // Fetch and display movies for a specific genre
         async function fetchMoviesByGenre(genreId) {
             const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}`;
             try {
@@ -246,7 +256,6 @@
             }
         }
 
-        // Search for movies
         async function searchMovies() {
             const query = document.getElementById('search-input').value.trim();
             if (!query) {
@@ -267,9 +276,8 @@
             }
         }
 
-        // Display movies in the container
         function displayMovies(movies) {
-            movieContainer.innerHTML = ''; // Clear previous results
+            movieContainer.innerHTML = '';
             const movieCategory = document.createElement('div');
             movieCategory.classList.add('movie-category');
             movieCategory.innerHTML = `<div class="category-title">Popular Movies</div>`;
@@ -289,7 +297,7 @@
                     <img src="${posterPath}" alt="${movie.title}">
                     <h3>${movie.title}</h3>
                 `;
-                movieCard.onclick = () => window.open(`${STREAM_API_URL}${movie.id}`, '_blank');
+                movieCard.onclick = () => openMovieStream(movie.id);
                 movieRow.appendChild(movieCard);
             });
 
@@ -297,7 +305,12 @@
             movieContainer.appendChild(movieCategory);
         }
 
-        // Load popular movies and genres on initial page load
+        function openMovieStream(movieId) {
+            const streamUrl = `${STREAM_API_URL}${movieId}`;
+            movieStream.style.display = 'block';
+            movieFrame.src = streamUrl;
+        }
+
         fetchPopularMovies();
         fetchGenres();
     </script>
