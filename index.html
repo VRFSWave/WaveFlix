@@ -215,6 +215,7 @@
         const movieStream = document.getElementById('movie-stream');
         const movieFrame = document.getElementById('movie-frame');
 
+        // Fetch and display popular movies on page load
         async function fetchPopularMovies() {
             try {
                 const response = await fetch(TMDB_POPULAR_URL);
@@ -225,6 +226,7 @@
             }
         }
 
+        // Fetch and display categories
         async function fetchGenres() {
             try {
                 const response = await fetch(TMDB_GENRES_URL);
@@ -235,6 +237,7 @@
             }
         }
 
+        // Display genres in a horizontal scrollable list
         function displayGenres(genres) {
             genres.forEach(genre => {
                 const button = document.createElement('button');
@@ -245,6 +248,7 @@
             });
         }
 
+        // Fetch and display movies for a specific genre
         async function fetchMoviesByGenre(genreId) {
             const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}`;
             try {
@@ -256,6 +260,7 @@
             }
         }
 
+        // Search for movies
         async function searchMovies() {
             const query = document.getElementById('search-input').value.trim();
             if (!query) {
@@ -276,43 +281,12 @@
             }
         }
 
+        // Display movies in the container
         function displayMovies(movies) {
-            movieContainer.innerHTML = '';
+            movieContainer.innerHTML = ''; // Clear previous results
             const movieCategory = document.createElement('div');
             movieCategory.classList.add('movie-category');
             movieCategory.innerHTML = `<div class="category-title">Popular Movies</div>`;
 
             const movieRow = document.createElement('div');
-            movieRow.classList.add('movie-row');
-
-            movies.forEach(movie => {
-                const movieCard = document.createElement('div');
-                movieCard.classList.add('movie-card');
-
-                const posterPath = movie.poster_path 
-                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
-                    : 'https://via.placeholder.com/220x330?text=No+Image';
-
-                movieCard.innerHTML = `
-                    <img src="${posterPath}" alt="${movie.title}">
-                    <h3>${movie.title}</h3>
-                `;
-                movieCard.onclick = () => openMovieStream(movie.id);
-                movieRow.appendChild(movieCard);
-            });
-
-            movieCategory.appendChild(movieRow);
-            movieContainer.appendChild(movieCategory);
-        }
-
-        function openMovieStream(movieId) {
-            const streamUrl = `${STREAM_API_URL}${movieId}`;
-            movieStream.style.display = 'block';
-            movieFrame.src = streamUrl;
-        }
-
-        fetchPopularMovies();
-        fetchGenres();
-    </script>
-</body>
-</html>
+            movieRow.classList
