@@ -5,9 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPORTWAVE Movies & TV Shows</title>
     <style>
-        /* Other styles here... */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background-color: #181818;
+            color: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        /* Movie Row and Card Adjustments */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-bar input {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: #f1f1f1;
+            width: 250px;
+        }
+
+        .search-bar button {
+            padding: 10px 16px;
+            background-color: #e50914;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .search-bar button:hover {
+            background-color: #b00710;
+        }
+
+        .movie-container {
+            margin-top: 150px;
+            padding: 40px 20px;
+            flex-grow: 1;
+            background-color: #181818;
+        }
+
+        .hero-section {
+            position: relative;
+            height: 500px;
+            background-color: #000;
+            overflow: hidden;
+            margin-bottom: 50px;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-content {
+            position: absolute;
+            bottom: 20%;
+            left: 5%;
+            color: white;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .hero-overview {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            max-width: 50%;
+        }
+
+        .hero-button {
+            padding: 15px 30px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            text-transform: uppercase;
+        }
+
+        .hero-button:hover {
+            background-color: #b00710;
+        }
+
         .movie-row {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -44,13 +153,50 @@
         .movie-card:hover {
             transform: scale(1.05);
         }
+
+        .movie-stream {
+            margin-top: 40px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .movie-stream iframe {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+        }
     </style>
 </head>
 <body>
-    <!-- Content here... -->
-    <div id="movie-container" class="movie-row"></div>
+
+    <div class="navbar">
+        <img src="https://i.ibb.co/vj5yj2B/Wave.png" alt="SPORTWAVE Logo" class="logo">
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search for a movie...">
+            <button onclick="searchMovies()">Search</button>
+        </div>
+    </div>
+
+    <div class="hero-section" id="hero-section">
+        <img class="hero-image" id="hero-image" src="" alt="Featured Movie">
+        <div class="hero-content">
+            <div class="hero-title" id="hero-title">Featured Movie</div>
+            <div class="hero-overview" id="hero-overview">Overview of the featured movie will go here.</div>
+            <button class="hero-button" id="hero-button" onclick="watchFeaturedMovie()">Watch Now</button>
+        </div>
+    </div>
+
+    <div class="movie-container">
+        <div id="movie-container" class="movie-row"></div>
+    </div>
+
+    <div id="movie-stream" class="movie-stream">
+        <iframe id="movie-frame" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+
     <script>
-        // JavaScript logic here...
         const TMDB_API_KEY = '34b1d9f567ce0d9a84994eda20ee4d01';
         const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
 
@@ -58,6 +204,7 @@
             const response = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US`);
             const data = await response.json();
             displayMovies(data.results);
+            displayHero(data.results[0]);
         }
 
         function displayMovies(movies) {
@@ -70,8 +217,29 @@
                     <img src="${IMAGE_URL}${movie.poster_path}" alt="${movie.title}">
                     <h3>${movie.title}</h3>
                 `;
+                card.onclick = () => openMovieStream(movie.id);
                 movieContainer.appendChild(card);
             });
+        }
+
+        function displayHero(movie) {
+            document.getElementById('hero-image').src = `${IMAGE_URL}${movie.backdrop_path}`;
+            document.getElementById('hero-title').textContent = movie.title;
+            document.getElementById('hero-overview').textContent = movie.overview;
+            document.getElementById('hero-button').setAttribute('data-movie-id', movie.id);
+        }
+
+        function watchFeaturedMovie() {
+            const movieId = document.getElementById('hero-button').getAttribute('data-movie-id');
+            openMovieStream(movieId);
+        }
+
+        function openMovieStream(movieId) {
+            const streamUrl = `https://vidlink.pro/movie/${movieId}`;
+            const movieStream = document.getElementById('movie-stream');
+            const movieFrame = document.getElementById('movie-frame');
+            movieStream.style.display = 'block';
+            movieFrame.src = streamUrl;
         }
 
         fetchPopularMovies();
