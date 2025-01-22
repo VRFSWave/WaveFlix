@@ -3,316 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPORTWAVE Movies</title>
+    <title>SPORTWAVE Movies & TV Shows</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
+            background-color: #181818;
+            color: #f1f1f1;
             margin: 0;
-            background-color: #181818; /* Dark background */
-            color: #f1f1f1; /* Light text */
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh; /* Ensure full page height */
             padding: 0;
-            box-sizing: border-box;
         }
 
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+        .container {
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.7); /* Translucent background */
-            z-index: 100;
-        }
-
-        .logo {
-            width: 150px;
-            height: auto;
         }
 
         .search-bar {
             display: flex;
-            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
         }
 
         .search-bar input {
+            flex: 1;
             padding: 10px;
-            border-radius: 4px;
             border: 1px solid #444;
             background-color: #333;
             color: #f1f1f1;
-            width: 250px;
+            border-radius: 5px;
         }
 
         .search-bar button {
-            padding: 10px 16px;
+            padding: 10px 20px;
             background-color: #e50914;
             border: none;
             color: white;
             cursor: pointer;
-            border-radius: 4px;
-            margin-left: 10px;
+            border-radius: 5px;
         }
 
         .search-bar button:hover {
             background-color: #b00710;
         }
 
-        .movie-container {
-            margin-top: 150px;
-            padding: 40px 20px;
-            flex-grow: 1;
-            background-color: #181818;
-        }
-
-        .movie-category {
-            margin-bottom: 40px;
-        }
-
         .category-title {
-            font-size: 30px;
-            margin-bottom: 20px;
+            font-size: 24px;
+            margin-bottom: 10px;
             color: #e50914;
-            font-weight: bold;
         }
 
         .movie-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .movie-card {
-            transition: transform 0.3s ease;
-            border-radius: 12px;
-            overflow: hidden;
+            width: 200px;
             background-color: #333;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s;
         }
 
         .movie-card img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
         }
 
         .movie-card h3 {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 18px;
-            color: #f1f1f1;
+            margin: 0;
             padding: 10px;
-            background-color: #444;
+            text-align: center;
         }
 
         .movie-card:hover {
             transform: scale(1.05);
         }
 
-        .category-container {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding: 10px 0;
-            margin-bottom: 30px;
-        }
-
-        .category-button {
-            padding: 12px 25px;
-            background-color: #444;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        .category-button:hover {
-            background-color: #e50914;
-        }
-
-        .category-button:active {
-            background-color: #b00710;
-        }
-
-        .movie-row::-webkit-scrollbar {
-            display: none;
-        }
-
-        @media screen and (max-width: 768px) {
-            .search-bar input {
-                width: 200px;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            .movie-card {
-                width: 160px;
-            }
-
-            .search-bar input {
-                width: 150px;
-            }
-        }
-
-        /* Style for the movie stream section */
-        .movie-stream {
-            margin-top: 40px;
-            background-color: #333;
+        .tv-selection {
+            margin: 20px 0;
             padding: 20px;
-            border-radius: 12px;
-            display: none;
+            background-color: #444;
+            border-radius: 10px;
         }
 
-        .movie-stream iframe {
+        .tv-selection h2 {
+            margin-bottom: 10px;
+        }
+
+        .tv-selection select,
+        .tv-selection input {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .tv-selection button {
+            padding: 10px;
+            background-color: #e50914;
+            border: none;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        iframe {
             width: 100%;
             height: 500px;
-            border-radius: 12px;
+            border: none;
         }
     </style>
 </head>
 <body>
-
-    <!-- Navbar -->
-    <div class="navbar">
-        <img src="https://i.ibb.co/vj5yj2B/Wave.png" alt="SPORTWAVE Logo" class="logo">
+    <div class="container">
         <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search for a movie...">
-            <button onclick="searchMovies()">Search</button>
+            <input type="text" id="search-input" placeholder="Search for movies or TV shows">
+            <button onclick="searchContent()">Search</button>
         </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="movie-container">
-        <!-- Category Buttons (Genre Selection) -->
-        <div class="category-container" id="category-container"></div>
-
-        <!-- Movie Categories and Posters -->
         <div id="movie-container"></div>
-
-        <!-- Movie Stream -->
-        <div id="movie-stream" class="movie-stream">
-            <iframe id="movie-frame" src="" frameborder="0" allowfullscreen></iframe>
+        <div id="tv-show-container"></div>
+        <div id="tv-selection-container"></div>
+        <div id="movie-stream" style="display:none;">
+            <iframe id="movie-frame" src="" allow="autoplay; fullscreen"></iframe>
         </div>
     </div>
 
     <script>
         const TMDB_API_KEY = '34b1d9f567ce0d9a84994eda20ee4d01';
-        const STREAM_API_URL = 'https://vidlink.pro/movie/';
-        const TMDB_POPULAR_URL = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`;
-        const TMDB_SEARCH_URL = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=`;
-        const TMDB_GENRES_URL = `https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_API_KEY}&language=en-US`;
+        const TMDB_POPULAR_MOVIES_URL = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`;
+        const TMDB_POPULAR_TV_URL = `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`;
+        const TMDB_SEARCH_URL = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=`;
 
         const movieContainer = document.getElementById('movie-container');
-        const categoryContainer = document.getElementById('category-container');
+        const tvShowContainer = document.getElementById('tv-show-container');
+        const tvSelectionContainer = document.getElementById('tv-selection-container');
         const movieStream = document.getElementById('movie-stream');
         const movieFrame = document.getElementById('movie-frame');
 
         async function fetchPopularMovies() {
             try {
-                const response = await fetch(TMDB_POPULAR_URL);
+                const response = await fetch(TMDB_POPULAR_MOVIES_URL);
                 const data = await response.json();
-                displayMovies(data.results);
+                displayMovies(data.results, 'movie');
             } catch (error) {
                 console.error('Error fetching popular movies:', error);
             }
         }
 
-        async function fetchGenres() {
+        async function fetchPopularTVShows() {
             try {
-                const response = await fetch(TMDB_GENRES_URL);
+                const response = await fetch(TMDB_POPULAR_TV_URL);
                 const data = await response.json();
-                displayGenres(data.genres);
+                displayMovies(data.results, 'tv');
             } catch (error) {
-                console.error('Error fetching genres:', error);
+                console.error('Error fetching popular TV shows:', error);
             }
         }
 
-        function displayGenres(genres) {
-            genres.forEach(genre => {
-                const button = document.createElement('button');
-                button.classList.add('category-button');
-                button.innerText = genre.name;
-                button.onclick = () => fetchMoviesByGenre(genre.id);
-                categoryContainer.appendChild(button);
+        function displayMovies(items, type) {
+            const container = type === 'movie' ? movieContainer : tvShowContainer;
+            container.innerHTML = `<div class="category-title">${type === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}</div>`;
+            const row = document.createElement('div');
+            row.classList.add('movie-row');
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('movie-card');
+                card.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}">
+                    <h3>${item.title || item.name}</h3>
+                `;
+                card.onclick = () => {
+                    if (type === 'movie') {
+                        openMovieStream(item.id);
+                    } else {
+                        openTVShowSelection(item.id, item.name);
+                    }
+                };
+                row.appendChild(card);
             });
+
+            container.appendChild(row);
         }
 
-        async function fetchMoviesByGenre(genreId) {
-            const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}`;
+        function openMovieStream(movieId) {
+            const streamUrl = `https://vidlink.pro/movie/${movieId}`;
+            movieFrame.src = streamUrl;
+            movieStream.style.display = 'block';
+        }
+
+        async function openTVShowSelection(tvId, tvName) {
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-                displayMovies(data.results);
+                const response = await fetch(`https://api.themoviedb.org/3/tv/${tvId}?api_key=${TMDB_API_KEY}`);
+                const tvDetails = await response.json();
+
+                const seasonOptions = tvDetails.seasons.map(
+                    season => `<option value="${season.season_number}">Season ${season.season_number}</option>`
+                ).join('');
+
+                tvSelectionContainer.innerHTML = `
+                    <div class="tv-selection">
+                        <h2>${tvName}</h2>
+                        <select id="season-select">${seasonOptions}</select>
+                        <input type="number" id="episode-input" placeholder="Episode Number" min="1">
+                        <button onclick="startTVStream(${tvId})">Watch Now</button>
+                    </div>
+                `;
             } catch (error) {
-                console.error('Error fetching movies by genre:', error);
+                console.error('Error fetching TV show details:', error);
             }
         }
 
-        async function searchMovies() {
+        function startTVStream(tvId) {
+            const season = document.getElementById('season-select').value;
+            const episode = document.getElementById('episode-input').value;
+
+            if (!season || !episode) {
+                alert('Please select a season and episode.');
+                return;
+            }
+
+            const streamUrl = `https://vidlink.pro/tv/${tvId}/${season}/${episode}`;
+            movieFrame.src = streamUrl;
+            movieStream.style.display = 'block';
+        }
+
+        async function searchContent() {
             const query = document.getElementById('search-input').value.trim();
             if (!query) {
-                alert('Please enter a movie title to search.');
+                alert('Please enter a search term.');
                 return;
             }
 
             try {
                 const response = await fetch(`${TMDB_SEARCH_URL}${encodeURIComponent(query)}`);
                 const data = await response.json();
-                if (data.results.length > 0) {
-                    displayMovies(data.results);
-                } else {
-                    movieContainer.innerHTML = `<p>No movies found for "${query}".</p>`;
-                }
+
+                const movies = data.results.filter(item => item.media_type === 'movie' && item.poster_path);
+                const tvShows = data.results.filter(item => item.media_type === 'tv' && item.poster_path);
+
+                displaySearchResults(movies, 'movie');
+                displaySearchResults(tvShows, 'tv');
             } catch (error) {
-                console.error('Error searching for movies:', error);
+                console.error('Error fetching search results:', error);
             }
         }
 
-        function displayMovies(movies) {
-            movieContainer.innerHTML = '';
-            const movieCategory = document.createElement('div');
-            movieCategory.classList.add('movie-category');
-            movieCategory.innerHTML = `<div class="category-title">Popular Movies</div>`;
+        function displaySearchResults(items, type) {
+            const container = type === 'movie' ? movieContainer : tvShowContainer;
+            container.innerHTML = `<div class="category-title">${type === 'movie' ? 'Search Results - Movies' : 'Search Results - TV Shows'}</div>`;
+            const row = document.createElement('div');
+            row.classList.add('movie-row');
 
-            const movieRow = document.createElement('div');
-            movieRow.classList.add('movie-row');
-
-            movies.forEach(movie => {
-                const movieCard = document.createElement('div');
-                movieCard.classList.add('movie-card');
-
-                const posterPath = movie.poster_path 
-                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
-                    : 'https://via.placeholder.com/220x330?text=No+Image';
-
-                movieCard.innerHTML = `
-                    <img src="${posterPath}" alt="${movie.title}">
-                    <h3>${movie.title}</h3>
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('movie-card');
+                card.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}">
+                    <h3>${item.title || item.name}</h3>
                 `;
-                movieCard.onclick = () => openMovieStream(movie.id);
-                movieRow.appendChild(movieCard);
+                card.onclick = () => {
+                    if (type === 'movie') {
+                        openMovieStream(item.id);
+                    } else {
+                        openTVShowSelection(item.id, item.name);
+                    }
+                };
+                row.appendChild(card);
             });
 
-            movieCategory.appendChild(movieRow);
-            movieContainer.appendChild(movieCategory);
-        }
-
-        function openMovieStream(movieId) {
-            const streamUrl = `${STREAM_API_URL}${movieId}`;
-            movieStream.style.display = 'block';
-            movieFrame.src = streamUrl;
+            container.appendChild(row);
         }
 
         fetchPopularMovies();
-        fetchGenres();
+        fetchPopularTVShows();
     </script>
 </body>
 </html>
