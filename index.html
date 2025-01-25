@@ -24,7 +24,7 @@
             left: 0;
             width: 100%;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.8);
             z-index: 100;
         }
 
@@ -61,57 +61,52 @@
         }
 
         .hero-section {
-            display: flex;
-            overflow: hidden;
             position: relative;
-            width: 100%;
             height: 500px;
+            background-size: cover;
+            background-position: center;
             margin-top: 80px;
         }
 
-        .hero-slide {
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.5s ease;
-        }
-
-        .hero-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .hero-content {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
             padding: 20px;
-            border-radius: 8px;
+            color: white;
         }
 
-        .hero-content h2 {
-            margin: 0;
-            color: #fff;
+        .hero-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        .hero-content button {
-            margin-top: 10px;
+        .hero-description {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .hero-button {
             padding: 10px 20px;
             background-color: #e50914;
-            border: none;
             color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 4px;
         }
 
-        .container {
-            padding: 20px;
+        .movie-container,
+        .tv-container {
             margin-top: 20px;
+            padding: 20px;
         }
 
         .category-title {
@@ -121,12 +116,14 @@
         }
 
         .movie-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
         }
 
         .movie-card {
+            min-width: 220px;
             background-color: #333;
             border-radius: 10px;
             overflow: hidden;
@@ -136,28 +133,33 @@
 
         .movie-card img {
             width: 100%;
-            height: auto;
+            height: 330px;
+            object-fit: cover;
         }
 
         .movie-card h3 {
             margin: 0;
             padding: 10px;
             text-align: center;
+            background-color: #444;
         }
 
         .movie-card:hover {
             transform: scale(1.05);
         }
 
-        iframe {
+        .stream-section {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .stream-section iframe {
             width: 100%;
             height: 500px;
             border: none;
-        }
-
-        .stream-container {
-            display: none;
-            margin-top: 20px;
         }
     </style>
 </head>
@@ -170,93 +172,164 @@
         </div>
     </div>
 
-    <div class="hero-section" id="hero-section"></div>
+    <div id="hero-section" class="hero-section"></div>
 
-    <div class="container">
+    <div class="movie-container">
         <div id="movie-container">
             <div class="category-title">Popular Movies</div>
-            <div class="movie-row" id="popular-movies"></div>
+            <div class="movie-row" id="movie-row"></div>
         </div>
+    </div>
 
+    <div class="tv-container">
         <div id="tv-container">
             <div class="category-title">Popular TV Shows</div>
-            <div class="movie-row" id="popular-tv"></div>
+            <div class="movie-row" id="tv-row"></div>
         </div>
+    </div>
 
-        <div class="stream-container" id="stream-container">
-            <iframe id="stream-frame"></iframe>
-        </div>
+    <div id="stream-section" class="stream-section">
+        <iframe id="stream-frame" allowfullscreen></iframe>
     </div>
 
     <script>
         const TMDB_API_KEY = '34b1d9f567ce0d9a84994eda20ee4d01';
-        const BASE_URL = 'https://api.themoviedb.org/3';
+        const MOVIE_POPULAR_URL = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`;
+        const TV_POPULAR_URL = `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`;
+        const SEARCH_URL = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&language=en-US&query=`;
 
-        const popularMoviesEl = document.getElementById('popular-movies');
-        const popularTVEl = document.getElementById('popular-tv');
-        const heroSectionEl = document.getElementById('hero-section');
-        const streamContainer = document.getElementById('stream-container');
+        const heroSection = document.getElementById('hero-section');
+        const movieRow = document.getElementById('movie-row');
+        const tvRow = document.getElementById('tv-row');
+        const streamSection = document.getElementById('stream-section');
         const streamFrame = document.getElementById('stream-frame');
 
-        async function fetchContent(url) {
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.results;
+        async function fetchContent(url, callback) {
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                callback(data.results);
+            } catch (error) {
+                console.error('Error fetching content:', error);
+            }
         }
 
-        async function loadHeroSection() {
-            const movies = await fetchContent(`${BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}`);
-            heroSectionEl.innerHTML = movies.slice(0, 10).map(movie => `
-                <div class="hero-slide">
-                    <img src="https://image.tmdb.org/t/p/original${movie.backdrop_path}" alt="${movie.title}">
-                    <div class="hero-content">
-                        <h2>${movie.title}</h2>
-                        <button onclick="playStream(${movie.id}, 'movie')">Watch Now</button>
-                    </div>
+        function displayHeroContent(items) {
+            if (!items.length) return;
+            const topItem = items[0];
+            const backgroundUrl = `https://image.tmdb.org/t/p/original${topItem.backdrop_path}`;
+            heroSection.style.backgroundImage = `url(${backgroundUrl})`;
+            heroSection.innerHTML = `
+                <div class="hero-overlay">
+                    <div class="hero-title">${topItem.title || topItem.name}</div>
+                    <div class="hero-description">${topItem.overview}</div>
+                    <button class="hero-button" onclick="watchContent('${topItem.media_type}', ${topItem.id})">Watch Now</button>
                 </div>
-            `).join('');
+            `;
         }
 
-        async function loadPopularMovies() {
-            const movies = await fetchContent(`${BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}`);
-            displayContent(movies, popularMoviesEl, 'movie');
+        function displayMovies(items) {
+            movieRow.innerHTML = '';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('movie-card');
+                card.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title}">
+                    <h3>${item.title}</h3>
+                `;
+                card.onclick = () => watchContent('movie', item.id);
+                movieRow.appendChild(card);
+            });
         }
 
-        async function loadPopularTVShows() {
-            const tvShows = await fetchContent(`${BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}`);
-            displayContent(tvShows, popularTVEl, 'tv');
+        function displayTVShows(items) {
+            tvRow.innerHTML = '';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.classList.add('movie-card');
+                card.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                `;
+                card.onclick = () => selectTVShow(item.id);
+                tvRow.appendChild(card);
+            });
         }
 
-        function displayContent(items, container, type) {
-            container.innerHTML = items.map(item => `
-                <div class="movie-card" onclick="playStream(${item.id}, '${type}')">
-                    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}">
-                    <h3>${item.title || item.name}</h3>
-                </div>
-            `).join('');
-        }
-
+        async function search
         async function searchContent() {
             const query = document.getElementById('search-input').value.trim();
-            if (!query) return alert('Please enter a search term.');
+            if (!query) {
+                alert('Please enter a search term.');
+                return;
+            }
 
-            const movieResults = await fetchContent(`${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${query}`);
-            const tvResults = await fetchContent(`${BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${query}`);
+            try {
+                const response = await fetch(`${SEARCH_URL}${encodeURIComponent(query)}`);
+                const data = await response.json();
 
-            displayContent(movieResults, popularMoviesEl, 'movie');
-            displayContent(tvResults, popularTVEl, 'tv');
+                if (data.results && data.results.length) {
+                    movieRow.innerHTML = '';
+                    tvRow.innerHTML = '';
+                    data.results.forEach(item => {
+                        if (item.media_type === 'movie') {
+                            const card = document.createElement('div');
+                            card.classList.add('movie-card');
+                            card.innerHTML = `
+                                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title}">
+                                <h3>${item.title}</h3>
+                            `;
+                            card.onclick = () => watchContent('movie', item.id);
+                            movieRow.appendChild(card);
+                        } else if (item.media_type === 'tv') {
+                            const card = document.createElement('div');
+                            card.classList.add('movie-card');
+                            card.innerHTML = `
+                                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.name}">
+                                <h3>${item.name}</h3>
+                            `;
+                            card.onclick = () => selectTVShow(item.id);
+                            tvRow.appendChild(card);
+                        }
+                    });
+                } else {
+                    alert('No results found.');
+                }
+            } catch (error) {
+                console.error('Error searching content:', error);
+            }
         }
 
-        function playStream(id, type) {
-            const url = type === 'movie' ? `https://vidlink.pro/movie/${id}` : `https://vidlink.pro/tv/${id}`;
-            streamFrame.src = url;
-            streamContainer.style.display = 'block';
-            streamContainer.scrollIntoView({ behavior: 'smooth' });
+        async function selectTVShow(tvId) {
+            const seasons = prompt("Enter the season number:");
+            const episodes = prompt("Enter the episode number:");
+            if (seasons && episodes) {
+                watchTVShow(tvId, seasons, episodes);
+            }
         }
 
-        loadHeroSection();
-        loadPopularMovies();
-        loadPopularTVShows();
+        function watchContent(type, id) {
+            const streamUrl = type === 'movie'
+                ? `https://vidlink.pro/movie/${id}`
+                : null;
+            if (streamUrl) {
+                streamSection.style.display = 'block';
+                streamFrame.src = streamUrl;
+            }
+        }
+
+        function watchTVShow(tvId, season, episode) {
+            const streamUrl = `https://vidlink.pro/tv/${tvId}/${season}/${episode}`;
+            streamSection.style.display = 'block';
+            streamFrame.src = streamUrl;
+        }
+
+        fetchContent(MOVIE_POPULAR_URL, results => {
+            displayMovies(results);
+            displayHeroContent(results);
+        });
+
+        fetchContent(TV_POPULAR_URL, displayTVShows);
     </script>
 </body>
 </html>
